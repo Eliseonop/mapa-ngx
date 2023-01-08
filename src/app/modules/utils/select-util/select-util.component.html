@@ -1,0 +1,18 @@
+<mat-form-field appearance="outline" [formGroup]="form" class="w-full m-0 p-0 ">
+    <mat-label>{{ label }}</mat-label>
+    <mat-select [formControlName]="nameControl" >
+        <ng-container *ngIf="optionsArray.length > 0; else elseTemplate">
+            <mat-option *ngFor="let option of optionsArray" [value]="option.id">
+                {{ option[optionName] }}
+            </mat-option>
+        </ng-container>
+        <ng-template #elseTemplate>
+            <mat-option
+                *ngFor="let option of options.value"
+                [value]="option.id"
+            >
+                {{ option[optionName] }}
+            </mat-option>
+        </ng-template>
+    </mat-select>
+</mat-form-field>
