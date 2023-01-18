@@ -1,5 +1,4 @@
-import { ModelExtends } from "app/modules/utils/services/model-abstract.types";
-
+import { ModelExtends } from 'app/modules/utils/services/model-abstract.types';
 
 export class RecorridoModel implements ModelExtends {
     id: number;
@@ -22,7 +21,15 @@ export class RecorridoModel implements ModelExtends {
         });
     }
 
-    get optionNameRuta (): string {
+    get googleTrayecto(): any{
+        const orden = this.trayecto.sort((a, b) => a.orden - b.orden);
+
+        return orden.map((trayecto) => {
+            return { lat: Number(trayecto.latitud), lng: Number(trayecto.longitud) };
+        });
+    }
+
+    get optionNameRuta(): string {
         return this.ruta?.codigo;
     }
 
@@ -54,6 +61,6 @@ export interface Ruta {
 
 export interface Trayecto {
     orden: number;
-    latitud: number;
-    longitud: number;
+    latitud: number | string;
+    longitud: number | string;
 }

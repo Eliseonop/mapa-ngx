@@ -2,31 +2,17 @@ import { GeocercasModel } from '../service/geocercas.types';
 import { BehaviorSubject } from 'rxjs';
 import { Component, OnInit } from '@angular/core';
 import { RecorridoService } from '../service/recorrido.service';
-import {
-    tileLayer,
-    latLng,
-    LatLngExpression,
-    circle,
-    polygon,
-    marker,
-    polyline,
-    Polyline,
-    PolylineOptions,
-    LatLngBounds,
-    Bounds,
-    Circle,
-    Marker,
-} from 'leaflet';
+import { tileLayer, latLng, Polyline, Circle, Marker } from 'leaflet';
 import { GeocercasService } from '../service/geocercas.service';
 import { MarkersService } from '../service/markers.service';
 import { MarkersModel } from '../service/markers.types';
 
 @Component({
-    selector: 'app-recorridos',
-    templateUrl: './recorridos.component.html',
-    styleUrls: ['./recorridos.component.scss'],
+    selector: 'app-leaflet-map',
+    templateUrl: './leaflet-mapa.component.html',
+    styleUrls: ['./leaflet-mapa.component.scss'],
 })
-export class RecorridosComponent implements OnInit {
+export class LeafletMapaComponent implements OnInit {
     // Propiedades del mapa
     layers: BehaviorSubject<any> = new BehaviorSubject<any>([]);
     listPolylinePoints = [];
@@ -46,7 +32,6 @@ export class RecorridosComponent implements OnInit {
     };
 
     bounds: any = null;
-
     constructor(
         private recorridoService: RecorridoService,
         private geocercasService: GeocercasService,
@@ -54,13 +39,11 @@ export class RecorridosComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
-        this.layers.next([
-            new Marker([-11.9795, -77.0657], { title: 'Mi posición'
-            
-        }),
-            new Circle([-11.9795, -77.0657], { radius: 3000 }),
-            new Circle([-11.9195, -77.0157], { radius: 1200 }),
-        ]);
+        // this.layers.next([
+        //     new Marker([-11.9795, -77.0657], { title: 'Mi posición' }),
+        //     new Circle([-11.9795, -77.0657], { radius: 3000 }),
+        //     new Circle([-11.9195, -77.0157], { radius: 1200 }),
+        // ]);
 
         this.subscribeToRecorridoServiceItems();
         this.subscribeToGeocercasServiceItems();
@@ -101,7 +84,7 @@ export class RecorridosComponent implements OnInit {
         });
     }
 
-    private mapMarkersPointsToLayers(markersPoints: any[]): any[] {
+    private mapMarkersPointsToLayers(markersPoints: any[]): Marker[] {
         return markersPoints.map((d) => {
             return new Marker(d.latLng, d.option);
         });

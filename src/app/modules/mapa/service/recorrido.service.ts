@@ -15,7 +15,7 @@ export class RecorridoService extends ModelServiceAbstract<
 
     _service: HttpClient = this._httpClient;
 
-    itemsFilters$: BehaviorSubject<any> = new BehaviorSubject<any>([]);
+    itemsFilters$: BehaviorSubject<RecorridoModel[]> = new BehaviorSubject<RecorridoModel[]>([]);
     constructor(private _httpClient: HttpClient) {
         super();
     }
