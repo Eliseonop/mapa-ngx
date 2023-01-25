@@ -27,10 +27,10 @@ export class GoogleMapaComponent implements OnInit {
     @ViewChild(MapInfoWindow) infoWindow: MapInfoWindow;
     @ViewChild('map', { static: false }) map: google.maps.Map;
     mapaCargado: boolean = false;
-
+    mapaRenderizado: boolean = false;
     options: google.maps.MapOptions = {
         center: { lat: -11.9795, lng: -77.0657 },
-        zoom: 4,
+        zoom: 14,
     };
     listPolylines: ModelPolylineGoogle[] = [];
 
@@ -49,19 +49,19 @@ export class GoogleMapaComponent implements OnInit {
         this._mapaService.getApiLoaded().subscribe({
             next: () => {
                 this.mapaCargado = true;
+                // console.log('mi mapa', this.map);
+                // setTimeout(() => {
+
+                // }, 1000);
                 // aqui puedes inicializar el mapa
             },
         });
         // ir a peru al cargar el mapa
-        console.log('mi mapa', this.map);
-        this.subscribeToRecorridoServiceItems();
-        this.subscribeToMarkersServiceItems();
-        this.subscribeToGeocercasServiceItems();
     }
-    openInfoWindow(marker: MapMarker) {
+    openInfoWindow(marker: MapMarker, content: string) {
         this.infoWindow.options = {
-            content: `<h1>InfoWindow</h1>`,
-        }
+            content: content,
+        };
         this.infoWindow.open(marker);
 
         // agregar el contenido del infoWindow
@@ -73,6 +73,15 @@ export class GoogleMapaComponent implements OnInit {
                 this.listGeocercas = this.mapDataToGeocercas(data);
             }
         });
+    }
+    tilesLoadesGo(): void {
+        if (!this.mapaRenderizado) {
+            this.subscribeToRecorridoServiceItems();
+            this.subscribeToMarkersServiceItems();
+            this.subscribeToGeocercasServiceItems();
+            this.mapaRenderizado = true;
+        }
+        console.log('tilesLoadesGo');
     }
 
     mapDataToGeocercas(data: GeocercasModel[]): ModelGeocercasGoogle[] {
@@ -111,7 +120,31 @@ export class GoogleMapaComponent implements OnInit {
                     lng: marker.longitud,
                 },
                 title: marker.nombre,
-                label: marker.nombre,
+
+                options: {
+                    label: {
+                        text: marker.nombre,
+                        color: '#000000',
+                        className: 'bg-white p-1 rounded',
+                    },
+
+                    icon: {
+                        url: 'https://png.pngtree.com/png-vector/20220821/ourmid/pngtree-map-icon-color-design-png-image_6119979.png',
+                        labelOrigin: new google.maps.Point(20, 60),
+                        scaledSize: new google.maps.Size(50, 50),
+                        strokeColor: '#0000ff',
+                        strokeWeight: 2,
+                        fillColor: '#0000ff',
+                    },
+                },
+                information: `
+                <div>
+                    <h3><strong>Nombre</strong> ${marker.nombre}</h3>
+                    <p><strong>Codigo</strong> ${marker.ruta.codigo}</p>
+                    <p><strong>Terminal</strong> ${marker.terminal}</p>
+                </div>
+
+                `,
             };
         });
     }
@@ -162,7 +195,8 @@ interface ModelPolylineGoogle {
 interface ModelMarkersGoogle {
     position: google.maps.LatLngLiteral;
     title: string;
-    label: string;
+    options: google.maps.MarkerOptions;
+    information: string;
 }
 interface ModelGeocercasGoogle {
     center: google.maps.LatLngLiteral;

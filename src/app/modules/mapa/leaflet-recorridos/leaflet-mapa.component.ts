@@ -1,11 +1,12 @@
-import { GeocercasModel } from '../service/geocercas.types';
-import { BehaviorSubject } from 'rxjs';
 import { Component, OnInit } from '@angular/core';
-import { RecorridoService } from '../service/recorrido.service';
-import { tileLayer, latLng, Polyline, Circle, Marker } from 'leaflet';
+import { Circle, CircleOptions, divIcon, LatLng, latLng, Marker, Polyline, PolylineOptions, tileLayer } from 'leaflet';
+import { BehaviorSubject } from 'rxjs';
+
 import { GeocercasService } from '../service/geocercas.service';
+import { GeocercasModel } from '../service/geocercas.types';
 import { MarkersService } from '../service/markers.service';
 import { MarkersModel } from '../service/markers.types';
+import { RecorridoService } from '../service/recorrido.service';
 
 @Component({
     selector: 'app-leaflet-map',
@@ -15,9 +16,9 @@ import { MarkersModel } from '../service/markers.types';
 export class LeafletMapaComponent implements OnInit {
     // Propiedades del mapa
     layers: BehaviorSubject<any> = new BehaviorSubject<any>([]);
-    listPolylinePoints = [];
-    listCirclePoints = [];
-    listMarkersPoints = [];
+    listPolylinePoints: BehaviorSubject<any> = new BehaviorSubject<any>([]);
+    listCirclePoints: BehaviorSubject<any> = new BehaviorSubject<any>([]);
+    listMarkersPoints: BehaviorSubject<any> = new BehaviorSubject<any>([]);
     // listaRecorridos: any[] = [];
     options = {
         layers: [
@@ -49,48 +50,76 @@ export class LeafletMapaComponent implements OnInit {
         this.subscribeToGeocercasServiceItems();
         this.subscribeToMarkersServiceItems();
     }
-    private subscribeToMarkersServiceItems(): void {
-        this.markersService.itemsFilters$.subscribe((data) => {
-            if (data) {
-                this.listMarkersPoints = this.mapDataToMarkersPoints(data);
-                this.layers.next(
-                    this.layers.value.concat(
-                        this.mapMarkersPointsToLayers(this.listMarkersPoints)
-                    )
-                );
-            }
-        });
-    }
+
     private subscribeToGeocercasServiceItems(): void {
         this.geocercasService.itemsFilters$.subscribe((data) => {
             if (data) {
-                this.listCirclePoints = this.mapDataToCirclePoints(data);
-                this.layers.next(
-                    this.layers.value.concat(
-                        this.mapCirclePointsToLayers(this.listCirclePoints)
-                    )
+                const myCircles = this.mapDataToCirclePoints(data);
+                this.listCirclePoints.next(
+                    this.mapCirclePointsToLayers(myCircles)
                 );
             }
         });
     }
-    private mapDataToMarkersPoints(data: MarkersModel[]): any[] {
+    private subscribeToMarkersServiceItems(): void {
+        this.markersService.itemsFilters$.subscribe((data) => {
+            if (data) {
+                const myMarkers = this.mapDataToMarkersPoints(data);
+
+                this.listMarkersPoints.next(
+                    this.mapMarkersPointsToLayers(myMarkers)
+                );
+            }
+        });
+    }
+    private mapDataToMarkersPoints(data: MarkersModel[]): MarketLeafletModel[] {
         return data.map((marker) => {
             return {
                 latLng: [marker.latitud, marker.longitud],
                 option: {
                     title: marker.nombre,
                 },
+                orden: marker.orden ? marker.orden : 0,
+                information: `
+                <div>
+                    <h3><strong>Nombre</strong> ${marker.nombre} </h3>
+                    <div><strong>Ruta</strong> ${marker.ruta.codigo} </div>
+                </div>
+                `,
             };
         });
     }
 
     private mapMarkersPointsToLayers(markersPoints: any[]): Marker[] {
         return markersPoints.map((d) => {
-            return new Marker(d.latLng, d.option);
+            const myMarker = new Marker(d.latLng, d.option);
+            myMarker.bindPopup(d.information, {
+                offset: [0, -30],
+            });
+            // myMarker
+            //     .bindTooltip(d.option.title, {
+            //         permanent: true,
+            //         className: 'bold',
+            //         offset: [0, 0],
+            //     })
+            //     .openTooltip();
+            const myBus = 'bus-verde';
+            const myIcon = divIcon({
+                className: 'bg-transparent ',
+                html: `<img class="relative -top-10 -left-2" src="../../../../assets/bus/${myBus}.png" />
+                        <span class="text-black absolute -top-4 left-1 ">${d.orden}</span>`,
+
+
+                // hacer que el icono se vea en arriva de la posicion
+            });
+            myMarker.setIcon(myIcon);
+            return myMarker;
         });
     }
 
-    private mapDataToCirclePoints(data: GeocercasModel[]): any[] {
+    private mapDataToCirclePoints(
+        data: GeocercasModel[]
+    ): CircleLeafletModel[] {
         return data.map((geocerca) => {
             return {
                 latLng: [geocerca.latitud, geocerca.longitud],
@@ -101,7 +130,7 @@ export class LeafletMapaComponent implements OnInit {
             };
         });
     }
-    mapCirclePointsToLayers(circlePoints: any[]): any[] {
+    mapCirclePointsToLayers(circlePoints: any[]): Circle[] {
         return circlePoints.map((d) => {
             return new Circle(d.latLng, d.option);
         });
@@ -110,15 +139,15 @@ export class LeafletMapaComponent implements OnInit {
     private subscribeToRecorridoServiceItems(): void {
         this.recorridoService.itemsFilters$.subscribe((data) => {
             if (data) {
-                this.listPolylinePoints = this.mapDataToPolylinePoints(data);
-                this.layers.next(
-                    this.mapPolylinePointsToLayers(this.listPolylinePoints)
+                const myRecorridos = this.mapDataToPolylinePoints(data);
+                this.listPolylinePoints.next(
+                    this.mapPolylinePointsToLayers(myRecorridos)
                 );
             }
         });
     }
 
-    mapDataToPolylinePoints(data: any[]): any[] {
+    mapDataToPolylinePoints(data: any[]): PolylineLeafletModel[] {
         return data.map((recorrido) => {
             return {
                 trayecto: recorrido.letafletTrayecto,
@@ -130,7 +159,9 @@ export class LeafletMapaComponent implements OnInit {
         });
     }
 
-    mapPolylinePointsToLayers(polylinePoints: any[]): any[] {
+    mapPolylinePointsToLayers(
+        polylinePoints: PolylineLeafletModel[]
+    ): Polyline[] {
         return polylinePoints.map((d) => {
             const newPolyline = new Polyline(d.trayecto, d.option);
             const goBounds = newPolyline.getBounds();
@@ -138,4 +169,19 @@ export class LeafletMapaComponent implements OnInit {
             return newPolyline;
         });
     }
+}
+
+interface MarketLeafletModel {
+    latLng: number[];
+    option: any;
+}
+
+interface CircleLeafletModel {
+    latLng: number[];
+    option: CircleOptions;
+}
+
+interface PolylineLeafletModel {
+    trayecto: LatLng[];
+    option: PolylineOptions;
 }

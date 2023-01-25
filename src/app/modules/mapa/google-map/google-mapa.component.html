@@ -1,5 +1,5 @@
 <div class="w-full h-full bg-slate-900" *ngIf="mapaCargado">
-    <google-map #map height="100%" width="100%" [options]="options">
+    <google-map #map height="100%" width="100%" [options]="options" (tilesloaded)="tilesLoadesGo()">
         <map-marker
             *ngFor="let marker of markers"
             [latitude]="marker.lat"
@@ -20,8 +20,8 @@
             <map-marker
                 #marker="mapMarker"
                 [position]="item.position"
-                [title]="item.title"
-                (mapClick)="openInfoWindow(marker)"
+                [options]="item.options"
+                (mapClick)="openInfoWindow(marker,item.information)"
             >
             </map-marker>
         </ng-container>
